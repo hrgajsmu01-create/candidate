@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Recruitment Monitor</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+ <style>
+    :root {
+      --md-blue-primary: #2563eb;
+      --md-blue-dark: #1e40af;
+      --md-orange-accent: #f97316;
+      --md-orange-light: #ffedd5;
+      --md-bg: #f8fafc;
+      
+      /* SOFT COLOR PALETTE FOR CV */
+      --cv-sidebar-bg: #e2e8f0;       
+      --cv-sidebar-card: #ffffff;    
+      --cv-main-bg: #f8fafc;          
+      --cv-card-bg: #ffffff;          
+      --cv-border-color: #e2e8f0;     
+      --cv-text-primary: #0f172a;     
+      --cv-text-secondary: #475569;   
+      --cv-accent-soft: #2563eb;      
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: var(--md-bg);
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      font-size: 0.85rem;
+    }
+
+    .dashboard-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+      padding: 0.5rem;
+      gap: 0.5rem;
+    }
+
+    .header-card {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      border-top: 4px solid var(--md-orange-accent);
+      flex-shrink: 0;
+      width: 100%;
+    }
+
+    .btn-md-orange {
+      background-color: var(--md-orange-accent);
+      color: #ffffff;
+      font-weight: 600;
+      border: none;
+    }
+    .btn-md-orange:hover {
+      background-color: #ea580c;
+      color: #ffffff;
+    }
+
+    .btn-md-blue {
+      background-color: var(--md-blue-primary);
+      color: #ffffff;
+      font-weight: 600;
+      border: none;
+    }
+
+    .table-wrapper {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      overflow: auto;
+    }
+
+    table {
+      border-collapse: separate;
+      border-spacing: 0;
+      width: 100%;
+      table-layout: auto; 
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+vertical-align: middle !important;
+      background-color: var(--md-blue-primary) !important;
+      color: #ffffff !important;
+      z-index: 10;
+      padding: 0.6rem 0.8rem;
+      font-weight: 600;
+      border-bottom: 2px solid var(--md-blue-dark);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+th:nth-child(2), 
+    td:nth-child(2) {
+      width: 110px !important;
+      min-width: 110px !important;
+      max-width: 120px !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
+    /* Penyesuaian lebar kolom Profil (Kolom ke-3) */
+    th:nth-child(3), 
+    td:nth-child(3) {
+      width: 50px !important;
+      min-width: 48px !important;
+      max-width: 50px !important;
+      text-align: center !important;
+      padding: 4px 6px !important;
+    }
+
+    td {
+      white-space: nowrap;
+      vertical-align: middle;
+      padding: 0.4rem 0.8rem;
+      border-bottom: 1px solid #e0e0e0;
+      background-color: #ffffff;
+      height: 42px;
+      line-height: 1.2;
+    }
+
+    tr:hover td {
+      background-color: var(--md-orange-light) !important;
+      cursor: pointer;
+    }
+
+    .profile-img-thumb {
+      width: 32px !important;
+      height: 38px !important;
+      object-fit: cover !important;
+      border-radius: 10% !important;
+      border: 1px solid #bdbdbd;
+      display: inline-block !important;
+      margin: 0 auto !important;
+    }
+
+    /* BADGE STATUS STYLING */
+    .badge-status {
+      font-size: 0.72rem;
+      padding: 0.35em 0.65em;
+      border-radius: 4px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .status-denied { background-color: #dc3545; color: #fff; }
+    .status-interview { background-color: #0dcaf0; color: #000; }
+    .status-psikotest { background-color: #6f42c1; color: #fff; }
+    .status-samapta { background-color: #fd7e14; color: #fff; }
+    .status-aktif { background-color: #198754; color: #fff; }
+    .status-proses { background-color: #ffc107; color: #000; }
+    .status-default { background-color: #6c757d; color: #fff; }
+
+    /* ========================================================= */
+    /* SOFT & CONTAINERIZED A4 CV TEMPLATE STYLES                */
+    /* ========================================================= */
+
+    .cv-modal-body {
+      padding: 24px 16px !important;
+      background-color: #cbd5e1;
+      display: flex;
+      justify-content: center;
+    }
+
+    .cv-a4-page {
+      width: 210mm;
+      height: 296mm;
+      max-height: 296mm;
+      background: var(--cv-main-bg);
+      display: flex;
+      margin: 0 auto;
+      padding: 5mm 5mm;             
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      box-sizing: border-box !important;
+      overflow: hidden;
+      gap: 5mm;                     
+      position: relative;
+      page-break-inside: avoid;
+      page-break-after: avoid;
+    }
+
+    .cv-sidebar {
+      width: 55mm !important; /* Disesuaikan menjadi 48mm agar lebih proporsional */
+      background-color: var(--cv-sidebar-bg); 
+      color: #0f172a;                         
+      padding: 4mm 3mm;
+      border-radius: 6px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3mm;
+      border: 1px solid #cbd5e1;
+    }
+
+    .cv-photo-container {
+      width: 100% !important;
+      height: 66mm !important; /* Disesuaikan proporsinya dengan lebar sidebar */
+      border-radius: 6px;
+      overflow: hidden;
+      background-color: var(--cv-sidebar-card);
+      border: 1px solid #cbd5e1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .cv-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+    }
+
+    .cv-sidebar-title {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--cv-accent-soft);            
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1.5px solid #cbd5e1;
+      padding-bottom: 2px;
+      margin-bottom: 1.5mm;
+    }
+
+    .cv-main {
+      flex: 1 !important;
+      padding: 0 4mm 4mm 4mm !important;                 
+      background-color: var(--cv-main-bg);
+      display: flex;
+      flex-direction: column;
+      gap: 3mm;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .cv-box {
+      background-color: var(--cv-card-bg);
+      border: 1px solid var(--cv-border-color);
+      border-radius: 5px;
+      padding: 6px 9px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+
+    .cv-box-sidebar {
+      background-color: var(--cv-sidebar-card);
+      border: 1px solid #cbd5e1;             
+      border-radius: 5px;
+      padding: 6px 9px;
+    }
+
+    .cv-label {
+      font-weight: 700;
+      color: var(--cv-text-secondary);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 4px;
+      line-height: 1.1;
+    }
+
+    .cv-label-sidebar {
+      font-weight: 700;
+      color: #475569;                       
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 2.5px;
+      line-height: 1.1;
+    }
+
+    .cv-main-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--cv-accent-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1.5px solid #cbd5e1;
+      padding-bottom: 3px;
+      margin-bottom: 2.5mm;
+    }
+
+    .cv-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2mm;
+    }
+
+    .editable-field[readonly] {
+      background-color: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+      box-shadow: none !important;
+      font-weight: 600;
+      color: var(--cv-text-primary);
+      font-size: 0.78rem;
+      width: 100%;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.6;
+      resize: none;
+    }
+
+    .editable-field-sidebar[readonly] {
+      background-color: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+      box-shadow: none !important;
+      font-weight: 600;
+      color: #0f172a !important;             
+      font-size: 0.73rem;
+      width: 100%;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.25;
+      resize: none;
+    }
+
+    .editable-field:not([readonly]),
+    .editable-field-sidebar:not([readonly]) {
+      background-color: #ffffff !important;
+      border: 1px solid #2563eb !important;
+      color: #0f172a !important;
+      padding: 2px 4px !important;
+      border-radius: 4px;
+    }
+
+    .cv-header-card {
+      background: #ffffff;
+      border: 1px solid var(--cv-border-color);
+      border-left: 5px solid var(--cv-accent-soft);
+      border-radius: 6px;
+      padding: 9px 13px;
+      margin-top: 0;                            
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .cv-modern-name {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--cv-text-primary);
+      line-height: 1.1;
+    }
+
+    .cv-modern-position {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--md-orange-accent);
+    }
+
+    .cv-modern-meta {
+      font-size: 0.65rem;
+      color: var(--cv-text-secondary);
+    }
+
+    .text-uppercase-force { text-transform: uppercase !important; }
+    .text-normal-force { text-transform: none !important; }
+
+    .auto-expand-field {
+      resize: none;
+      overflow: hidden;
+      min-height: 20px;
+      height: auto;
+    }
+
+    .cv-link-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.1rem;
+    }
+
+    .cv-url-clickable {
+      word-break: break-all;
+      font-size: 0.7rem;
+      color: var(--cv-accent-soft);
+      text-decoration: underline;
+    }
+
+    /* SIGN WATERMARK KANAN BAWAH CV */
+    .cv-footer-sign {
+      position: absolute;
+      bottom: 2mm;
+      right: 3mm;
+      font-size: 0.62rem;
+      font-style: italic;
+      color: #64748b;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    /* ========================================================= */
+    /* PRINT / SAVE AS PDF                                       */
+    /* ========================================================= */
+    #printCloneWrap {
+      display: none;
+    }
+
+    @media print {
+      html, body {
+        height: auto !important;
+        overflow: visible !important;
+      }
+
+      body * {
+        visibility: hidden !important;
+      }
+
+      #printCloneWrap, #printCloneWrap * {
+        visibility: visible !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+
+      #printCloneWrap {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 210mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        display: block !important;
+        overflow: visible !important;
+        z-index: 999999 !important;
+      }
+
+      #printCloneWrap .cv-a4-page {
+        box-shadow: none !important;
+        margin: 0 !important;
+        width: 210mm !important;
+        height: 296mm !important;
+        page-break-after: avoid !important;
+      }
+
+      @page {
+        size: A4;
+        margin: 0;
+      }
+    }
+</style>
+</head>
+<body>
+
+<div class="dashboard-container">
+  <div class="header-card">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h6 class="fw-bold mb-0 text-uppercase" style="color: var(--md-blue-primary);"></h6>
+      <div class="d-flex align-items-center gap-2">
+<button class="btn btn-sm btn-outline-primary fw-bold py-1.5 fs-7" onclick="fetchData()">🔄 Refresh</button>
+        <span class="badge btn-md-orange px-3 py-2 fs-6" id="totalRecords"> 0 </span>
+      </div>
+    </div>
+    
+    <!-- FILTER DASHBOARD -->
+    <div class="row g-1 align-items-center">
+      <div class="col-md-3">
+        <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="🔍 Search ...">
+      </div>
+      
+      <div class="col-md-2 d-flex align-items-center gap-1">
+        <span class="cv-label mb-0">USIA </span>
+        <select id="filterUsiaOp" class="form-select form-select-sm" style="width: 55px;">
+          <option value="=">=</option>
+          <option value="<">&lt;</option>
+          <option value=">">&gt;</option>
+          <option value="<=">&le;</option>
+          <option value=">=">&ge;</option>
+        </select>
+        <input type="number" id="filterUsiaVal" class="form-control form-control-sm" placeholder="Tahun">
+      </div>
+
+      <div class="col-md-2 d-flex align-items-center gap-1">
+        <span class="cv-label mb-0">TB </span>
+        <select id="filterTbOp" class="form-select form-select-sm" style="width: 55px;">
+          <option value=">=">&ge;</option>
+          <option value=">">&gt;</option>
+          <option value="<">&lt;</option>
+          <option value="=">=</option>
+        </select>
+        <input type="number" id="filterTbVal" class="form-control form-control-sm" placeholder="Cm">
+      </div>
+
+      <div class="col-md-2 d-flex align-items-center gap-1">
+        <span class="cv-label mb-0">POSISI </span>
+        <select id="filterPosisi" class="form-select form-select-sm">
+          <option value="">-- Semua Posisi --</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select id="filterPendidikan" class="form-select form-select-sm">
+          <option value="">-- Semua Pendidikan --</option>
+          <option value="SMA">SMA / SMK</option>
+          <option value="D3">D3</option>
+          <option value="S1">S1</option>
+          <option value="S2">S2</option>
+        </select>
+      </div>
+
+      <div class="col-md-1 text-end">
+        <button class="btn btn-sm btn-secondary w-100 py-1 fs-7" onclick="resetFilters()">RESET</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="table table-hover mb-0" id="recruitmentTable">
+      <thead>
+        <tr id="tableHeader"></tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr><td colspan="100%" class="text-center py-4 text-muted">Loading ...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL CV -->
+<div class="modal fade" id="cvModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow">
+      <!-- HEADER: DROPDOWN STATUS SEBELAH KIRI TOMBOL SIMPAN -->
+      <div class="modal-header py-2 text-white" style="background-color: var(--md-blue-primary);">
+        <h6 class="modal-title fw-bold text-uppercase" id="cvModalTitle">DATA KANDIDAT</h6>
+        <div class="d-flex align-items-center gap-2 ms-auto">
+          <!-- DROPDOWN STATUS -->
+          <div id="statusDropdownContainer" class="d-none">
+            <select id="cvStatusSelect" class="form-select form-select-sm fw-bold border-0 text-uppercase" style="width: 130px; background-color: #ffffff; color: #0f172a;">
+              <option value="">-- KOSONG --</option>
+              <option value="Proses">Proses</option>
+              <option value="Interview">Interview</option>
+              <option value="Psikotest">Psikotest</option>
+              <option value="Samapta">Samapta</option>
+              <option value="Aktif">Aktif</option>
+              <option value="Denied">Denied</option>
+            </select>
+          </div>
+          <button class="btn btn-sm btn-success text-uppercase fw-bold d-none" id="btnSaveCV" onclick="saveDataChange()">💾 SIMPAN</button>
+          <button class="btn btn-sm btn-md-orange text-uppercase fw-bold" id="btnEditCV" onclick="toggleEditMode()">✏️ EDIT</button>
+          <button class="btn btn-sm btn-light text-primary text-uppercase fw-bold" onclick="downloadCV_PDF()">📥 DOWNLOAD</button>
+          <button type="button" class="btn-close btn-close-white ms-1" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+      </div>
+      
+      <div class="modal-body cv-modal-body" id="cvPrintArea">
+        <form id="cvForm">
+          <div class="cv-a4-page">
+            
+            <!-- LEFT SIDEBAR -->
+            <div class="cv-sidebar">
+              <div class="cv-photo-container">
+                <img id="cvPhoto" src="" class="cv-photo" alt="Foto Pelamar">
+              </div>
+
+              <div>
+                <div class="cv-sidebar-title">Kontak</div>
+                <div class="d-flex flex-column gap-1">
+                  <div class="cv-box-sidebar">
+                    <span class="cv-label-sidebar">WhatsApp</span>
+                    <input type="text" name="WHATSAPP" class="form-control editable-field-sidebar text-uppercase-force" readonly>
+                  </div>
+                  <div class="cv-box-sidebar">
+                    <span class="cv-label-sidebar">Email</span>
+                    <input type="text" name="EMAIL" class="form-control editable-field-sidebar text-normal-force" readonly>
+                  </div>
+                  <div class="cv-box-sidebar">
+                    <span class="cv-label-sidebar">Sosial Media</span>
+                    <textarea name="SOSMED" class="form-control editable-field-sidebar auto-expand-field text-normal-force" readonly></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div class="cv-sidebar-title">Postur</div>
+                <div class="cv-grid-2">
+                  <div class="cv-box-sidebar"><span class="cv-label-sidebar">Tinggi Badan</span><input type="text" name="TB" class="form-control editable-field-sidebar text-uppercase-force" readonly></div>
+                  <div class="cv-box-sidebar"><span class="cv-label-sidebar">Berat Badan</span><input type="text" name="BB" class="form-control editable-field-sidebar text-uppercase-force" readonly></div>
+                  <div class="cv-box-sidebar"><span class="cv-label-sidebar">Baju</span><input type="text" name="BAJU" class="form-control editable-field-sidebar text-uppercase-force" readonly></div>
+                  <div class="cv-box-sidebar"><span class="cv-label-sidebar">Celana</span><input type="text" name="CELANA" class="form-control editable-field-sidebar text-uppercase-force" readonly></div>
+                  <div class="cv-box-sidebar"><span class="cv-label-sidebar">Sepatu</span><input type="text" name="SEPATU" class="form-control editable-field-sidebar text-uppercase-force" readonly></div>
+                  <div class="cv-box-sidebar"><span class="cv-label-sidebar">Gol. Darah</span><input type="text" name="GOLDAR" class="form-control editable-field-sidebar text-uppercase-force" readonly></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="cv-sidebar-title">SIM</div>
+                <div class="cv-grid-2">
+                  <div class="cv-box-sidebar"><span class="cv-label-sidebar">SIM A</span><input type="text" name="SIM A" class="form-control editable-field-sidebar text-uppercase-force" readonly></div>
+                  <div class="cv-box-sidebar"><span class="cv-label-sidebar">SIM C</span><input type="text" name="SIM C" class="form-control editable-field-sidebar text-uppercase-force" readonly></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="cv-sidebar-title">Dokumen</div>
+                <div class="d-flex flex-column gap-1">
+                  <div class="cv-box-sidebar"><span class="cv-label-sidebar">KTP</span><input type="text" name="KTP" class="form-control editable-field-sidebar text-uppercase-force" readonly></div>
+                  <div class="cv-box-sidebar"><span class="cv-label-sidebar">No. KK</span><input type="text" name="KK" class="form-control editable-field-sidebar text-uppercase-force" readonly></div>
+                  <div class="cv-box-sidebar"><span class="cv-label-sidebar">NPWP</span><input type="text" name="NPWP" class="form-control editable-field-sidebar text-uppercase-force" readonly></div>
+                  <div class="cv-box-sidebar"><span class="cv-label-sidebar">BPJS TK / KES</span><input type="text" name="BPJS_COMBO" class="form-control editable-field-sidebar text-uppercase-force" readonly></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- RIGHT MAIN CONTENT -->
+            <div class="cv-main">
+              <div class="cv-header-card">
+                <div>
+                  <div class="cv-modern-name text-uppercase-force" id="cvNameView">NAMA KANDIDAT</div>
+                  <div class="cv-modern-position text-uppercase-force" id="cvPosisiView">POSISI - LOKASI</div>
+                  <div class="cv-modern-meta text-uppercase-force" id="cvMetaView">TIMESTAMP: - | NO: - </div>
+                </div>
+                <div class="d-flex flex-column align-items-end gap-1">
+                  <span class="badge bg-secondary px-2 py-1 text-uppercase" style="font-size:0.65rem;">APPLICATION FORM</span>
+                  <!-- STATUS DI BAWAH APPLICATION FORM DI-HIDE KARENA TIDAK PERLU -->
+                  <span id="cvStatusBadge" class="badge badge-status status-default d-none">-</span>
+                </div>
+              </div>
+
+              <!-- DATA PRIBADI & ALAMAT -->
+              <div>
+                <div class="cv-main-title">Data Diri</div>
+                <div class="cv-grid-2 mb-2">
+                  <div class="cv-box"><span class="cv-label">Tempat, Tanggal Lahir</span><input type="text" name="POB_DOB" class="form-control editable-field text-uppercase-force" readonly></div>
+                  <div class="cv-box"><span class="cv-label">Gender</span><input type="text" name="GENDER" class="form-control editable-field text-uppercase-force" readonly></div>
+                  <div class="cv-box"><span class="cv-label">Agama</span><input type="text" name="AGAMA" class="form-control editable-field text-uppercase-force" readonly></div>
+                  <div class="cv-box"><span class="cv-label">Orang Tua</span><input type="text" name="ORANG TUA" class="form-control editable-field text-uppercase-force" readonly></div>
+                  <div class="cv-box"><span class="cv-label">Kontak Darurat</span><input type="text" name="KONTAK DARURAT" class="form-control editable-field text-uppercase-force" readonly></div>
+                  <div class="cv-box"><span class="cv-label">Status PTKP</span><input type="text" name="WP" class="form-control editable-field text-uppercase-force" readonly></div>
+                </div>
+
+                <div class="cv-grid-2">
+                  <div class="cv-box">
+                    <span class="cv-label">Alamat KTP</span>
+                    <textarea name="ALAMAT" class="form-control editable-field auto-expand-field text-uppercase-force" readonly></textarea>
+                  </div>
+                  <div class="cv-box">
+                    <span class="cv-label">Alamat Domisili</span>
+                    <textarea name="DOMISILI" class="form-control editable-field auto-expand-field text-uppercase-force" readonly></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- PENDIDIKAN & KUALIFIKASI -->
+              <div>
+                <div class="cv-main-title">Pendidikan & Sertifikasi</div>
+                <div class="cv-grid-2 mb-2">
+                  <div class="cv-box"><span class="cv-label">Pendidikan</span><input type="text" name="PENDIDIKAN" class="form-control editable-field text-uppercase-force" readonly></div>
+                  <div class="cv-box"><span class="cv-label">Sekolah/Universitas</span><input type="text" name="SEKOLAH/UNIVERSITAS" class="form-control editable-field text-uppercase-force" readonly></div>
+                  <div class="cv-box"><span class="cv-label">Jurusan</span><input type="text" name="JURUSAN" class="form-control editable-field text-uppercase-force" readonly></div>
+                  <div class="cv-box"><span class="cv-label">Tahun Lulus</span><input type="text" name="LULUS" class="form-control editable-field text-uppercase-force" readonly></div>
+                  <div class="cv-box"><span class="cv-label">Kualifikasi</span><input type="text" name="KUALIFIKASI" class="form-control editable-field text-uppercase-force" readonly></div>
+                  <div class="cv-box"><span class="cv-label">Tahun Sertifikat</span><input type="text" name="TAHUN" class="form-control editable-field text-uppercase-force" readonly></div>
+                  <div class="cv-box"><span class="cv-label">Instansi Penyelenggara</span><input type="text" name="INSTANSI" class="form-control editable-field text-uppercase-force" readonly></div>
+                  <div class="cv-box"><span class="cv-label">Register KTA</span><input type="text" name="REGISTER KTA" class="form-control editable-field text-uppercase-force" readonly></div>
+                  <div class="cv-box" style="grid-column: span 2;"><span class="cv-label">No. Ijazah </span><input type="text" name="NO IJAZAH" class="form-control editable-field text-uppercase-force" readonly></div>
+                </div>
+
+                <div class="cv-box">
+                  <span class="cv-label">Pelatihan & Sertifikasi</span>
+                  <textarea name="PELATIHAN DAN SERTIFIKASI" class="form-control editable-field auto-expand-field text-uppercase-force" readonly></textarea>
+                </div>
+              </div>
+
+              <!-- PENGALAMAN KERJA -->
+              <div>
+                <div class="cv-main-title">Pengalaman Kerja</div>
+                <div class="cv-box">
+                  <textarea name="PENGALAMAN" class="form-control editable-field auto-expand-field text-uppercase-force" readonly></textarea>
+                </div>
+              </div>
+
+              <!-- BERKAS LAMPIRAN CV -->
+              <div>
+                <div class="cv-main-title">Lampiran</div>
+                <div class="cv-box">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                   
+                    <div id="uploadContainer" class="d-none">
+                      <input type="file" id="cvFileInput" class="d-none" onchange="handleFileUpload(event)">
+                      <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 fs-7 fw-bold" onclick="document.getElementById('cvFileInput').click()">📤 Tambah Lampiran</button>
+                    </div>
+                  </div>
+                  
+                  <div id="cvLinksContainer"></div>
+                  <textarea name="CV_LINKS" id="cvLinksTextarea" class="form-control editable-field auto-expand-field text-normal-force d-none" placeholder="Masukkan URL CV dipisahkan enter..."></textarea>
+                </div>
+              </div>
+
+              <!-- SIGN KANAN BAWAH CV -->
+              <div class="cv-footer-sign" id="cvFooterSign">
+                HRGA/JSMU [ -- - -- ]
+              </div>
+
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODERN ALERT MODAL -->
+<div class="modal fade" id="modernAlertModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content text-center p-3">
+      <div id="alertIcon" class="fs-1 mb-1">💡</div>
+      <h6 id="alertTitle" class="fw-bold mb-1">Notifikasi</h6>
+      <p id="alertMessage" class="text-muted small mb-3">Pesan...</p>
+      <button type="button" class="btn btn-sm btn-md-blue px-4" data-bs-dismiss="modal">OK</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwAHQ-JbjEP1XL1dXiT0uh6PaUA0tt1njkVMAzDEXOGiKVPg2zDdH2AzZZGQLYVaqfi9g/exec";
+
+  let rawPelamarData = [];
+  let tableHeaders = [];
+  let displayHeaders = [];
+  let activeSelectedRow = null;
+  let isEditMode = false;
+
+  function showModernAlert(title, message, icon = "ℹ️") {
+    document.getElementById("alertIcon").innerText = icon;
+    document.getElementById("alertTitle").innerText = title;
+    document.getElementById("alertMessage").innerText = message;
+    const alertModal = new bootstrap.Modal(document.getElementById('modernAlertModal'));
+    alertModal.show();
+  }
+
+  function getStatusBadgeClass(statusStr) {
+    if (!statusStr || String(statusStr).trim() === "") return "";
+    let st = String(statusStr).trim().toLowerCase();
+    switch (st) {
+      case 'denied': return 'status-denied';
+      case 'interview': return 'status-interview';
+      case 'psikotest': return 'status-psikotest';
+      case 'samapta': return 'status-samapta';
+      case 'aktif': return 'status-aktif';
+      case 'proses': return 'status-proses';
+      default: return 'status-default';
+    }
+  }
+
+  function getValueByHeader(dataObj, headerKeys) {
+    if (!dataObj) return "";
+    for (let key of Object.keys(dataObj)) {
+      let cleanKey = key.trim().toUpperCase();
+      if (headerKeys.includes(cleanKey)) {
+        return dataObj[key];
+      }
+    }
+    return "";
+  }
+
+  function getFormattedTimestamp() {
+    const now = new Date();
+    const dd = String(now.getDate()).padStart(2, '0');
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const yyyy = now.getFullYear();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    const ss = String(now.getSeconds()).padStart(2, '0');
+    return `${dd}${mm}${yyyy} - ${hh}:${min}:${ss}`;
+  }
+
+  async function fetchData() {
+    try {
+      const tbody = document.getElementById("tableBody");
+      tbody.innerHTML = `<tr><td colspan="100%" class="text-center py-4 text-muted">Loading ...</td></tr>`;
+
+      // Menambahkan opsi mode 'cors' dan penanganan header yang tepat
+      const res = await fetch(GAS_API_URL, {
+        method: "GET",
+        mode: "cors"
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP Error! Status: ${res.status}`);
+      }
+
+      const json = await res.json();
+      
+      if (json.error) {
+        showModernAlert("Error Server", json.error, "⚠️");
+        tbody.innerHTML = `<tr><td colspan="100%" class="text-center text-danger py-4">Server merespons dengan error: ${json.error}</td></tr>`;
+        return;
+      }
+
+      tableHeaders = json.headers;
+      rawPelamarData = json.data;
+
+      const emailIndex = 7;
+      
+      displayHeaders = [];
+      for (let i = 0; i <= emailIndex && i < tableHeaders.length; i++) {
+        displayHeaders.push(tableHeaders[i]);
+      }
+
+      let kualifikasiIndex = tableHeaders.findIndex(h => String(h).trim().toUpperCase() === "KUALIFIKASI");
+      if (kualifikasiIndex !== -1 && kualifikasiIndex > emailIndex) {
+        displayHeaders.push(tableHeaders[kualifikasiIndex]);
+      }
+
+      let cvIndex = tableHeaders.findIndex(h => String(h).trim().toUpperCase() === "CV");
+      if (cvIndex !== -1 && cvIndex > emailIndex) {
+        displayHeaders.push(tableHeaders[cvIndex]);
+      }
+
+      let statusIndex = tableHeaders.findIndex(h => String(h).trim().toUpperCase() === "STATUS");
+      if (statusIndex !== -1) {
+        displayHeaders.push(tableHeaders[statusIndex]);
+      } else {
+        displayHeaders.push("STATUS");
+      }
+
+      renderHeader();
+      populatePosisiFilter();
+      applyFilters();
+    } catch (err) {
+      console.error("Gagal memuat API:", err);
+      document.getElementById("tableBody").innerHTML = `
+        <tr>
+          <td colspan="100%" class="text-center text-danger py-4">
+            <strong>Gagal memuat API.</strong><br>
+            <span class="small text-muted">Pastikan URL Web App Google Apps Script sudah benar, izin akses diset ke "Anyone", dan jalankan melalui local server (Live Server/XAMPP) jika membuka file secara lokal.</span>
+          </td>
+        </tr>`;
+    }
+  }
+
+  function populatePosisiFilter() {
+    const select = document.getElementById("filterPosisi");
+    const prevVal = select.value;
+
+    const posisiSet = new Set();
+    rawPelamarData.forEach(row => {
+      const posisi = String(getValueByHeader(row, ["POSISI"]) || "").trim();
+      if (posisi) posisiSet.add(posisi);
+    });
+
+    const posisiList = Array.from(posisiSet).sort((a, b) => a.localeCompare(b));
+
+    select.innerHTML = `<option value="">-- Semua Posisi --</option>` +
+      posisiList.map(p => `<option value="${p}">${p.toUpperCase()}</option>`).join("");
+
+    if (posisiList.includes(prevVal)) {
+      select.value = prevVal;
+    }
+  }
+
+function renderHeader() {
+    const tr = document.getElementById("tableHeader");
+    tr.innerHTML = displayHeaders.map(h => {
+      const headerName = String(h).trim().toUpperCase();
+      const isProfile = headerName === "PROFIL";
+      const widthStyle = isProfile ? 'style="width:56px; min-width:56px; max-width:56px;"' : '';
+      
+      // Tambahkan inline style atau class agar teks/ikon di th rata tengah vertikal & horizontal
+      return `<th title="${headerName}" ${widthStyle} style="vertical-align: middle; text-align: center;">${headerName}</th>`;
+    }).join("");
+  }
+
+  function renderBody(data) {
+    const tbody = document.getElementById("tableBody");
+    document.getElementById("totalRecords").innerText = `${data.length}`;
+
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="100%" class="text-center py-4 text-muted">Data tidak ditemukan.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = data.map((row) => {
+      return `<tr onclick="openCVModalByDataRow(${rawPelamarData.indexOf(row)})">` + displayHeaders.map(h => {
+        let val = row[h] !== undefined ? row[h] : "";
+        const headerName = String(h).trim().toUpperCase();
+
+        if (headerName === "PROFIL") {
+          let imgSrc = extractImageUrl(val);
+          const noPhotoThumb = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><rect width='32' height='32' fill='%23cbd5e1'/><text x='16' y='19' fill='%2364748b' font-size='9' font-weight='bold' text-anchor='middle'>N/A</text></svg>";
+          return `<td class="text-center" style="width:56px;"><img src='${imgSrc || noPhotoThumb}' class="profile-img-thumb" onerror="this.onerror=null;this.src='${noPhotoThumb}';"></td>`;
+        }
+        
+        if (headerName === "CV") {
+          let links = parseMultipleUrls(val);
+          if (links.length > 0) {
+            let btnsHtml = links.map((link, lIdx) => 
+              `<a href="${link}" target="_blank" onclick="event.stopPropagation()" class="btn btn-sm btn-md-orange me-1 py-0 px-2 fs-7">CV ${links.length > 1 ? (lIdx + 1) : ''}</a>`
+            ).join("");
+            return `<td>${btnsHtml}</td>`;
+          } else {
+            return `<td class="text-muted fs-7">TIDAK ADA</td>`;
+          }
+        }
+
+        // TAMPILAN DASHBOARD: JIKA KOSONG DIBIARKAN KOSONG TANPA BADGE (-)
+        if (headerName === "STATUS") {
+          let statusTxt = getValueByHeader(row, ["STATUS"]);
+          if (!statusTxt || String(statusTxt).trim() === "") {
+            return `<td></td>`;
+          }
+          let badgeCls = getStatusBadgeClass(statusTxt);
+          let displayTxt = String(statusTxt).trim().toUpperCase();
+          return `<td><span class="badge badge-status ${badgeCls}">${displayTxt}</span></td>`;
+        }
+
+        if (headerName === "EMAIL") {
+          return `<td title="${String(val)}">${String(val)}</td>`;
+        }
+
+        return `<td title="${String(val).toUpperCase()}">${String(val).toUpperCase()}</td>`;
+      }).join("") + `</tr>`;
+    }).join("");
+  }
+
+  function parseMultipleUrls(str) {
+    if (!str) return [];
+    let text = String(str).trim();
+    let matches = text.match(/https?:\/\/[^\s,]+/g);
+    return matches ? matches : (text.startsWith("http") ? [text] : []);
+  }
+
+  function extractImageUrl(value) {
+    if (!value) return "";
+    let str = String(value).trim();
+    if (str.startsWith("http")) return convertDriveUrl(str);
+    const match = str.match(/https?:\/\/[^\"]+/);
+    return match ? convertDriveUrl(match[0]) : "";
+  }
+
+  function convertDriveUrl(url) {
+    if (url.includes("google.com")) {
+      const matchId = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+      if (matchId && matchId[1]) return `https://lh3.googleusercontent.com/d/${matchId[1]}`;
+    }
+    return url;
+  }
+
+  function loadBase64ImageIntoElement(imgUrl, targetImgElement) {
+    if (!imgUrl) {
+      targetImgElement.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="260" viewBox="0 0 200 260"><rect width="100%" height="100%" fill="%23334155"/><text x="50%" y="50%" fill="%2394a3b8" font-size="14" font-weight="bold" text-anchor="middle" dominant-baseline="middle">NO PHOTO</text></svg>';
+      return;
+    }
+
+    let img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = function() {
+      let canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth || img.width;
+      canvas.height = img.naturalHeight || img.height;
+      let ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      try {
+        let dataURL = canvas.toDataURL('image/jpeg');
+        targetImgElement.src = dataURL;
+      } catch (e) {
+        // Gagal konversi ke base64 (CORS blocked) -> pakai placeholder,
+        // JANGAN pakai imgUrl mentah karena akan membuat canvas PDF "tainted"
+        // dan menyebabkan tombol Download gagal total tanpa pesan error.
+        targetImgElement.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="260" viewBox="0 0 200 260"><rect width="100%" height="100%" fill="%23334155"/><text x="50%" y="50%" fill="%2394a3b8" font-size="14" font-weight="bold" text-anchor="middle" dominant-baseline="middle">NO PHOTO</text></svg>';
+      }
+    };
+    img.onerror = function() {
+      // Sama seperti di atas: fallback ke placeholder, bukan URL asli.
+      targetImgElement.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="260" viewBox="0 0 200 260"><rect width="100%" height="100%" fill="%23334155"/><text x="50%" y="50%" fill="%2394a3b8" font-size="14" font-weight="bold" text-anchor="middle" dominant-baseline="middle">NO PHOTO</text></svg>';
+    };
+    img.src = imgUrl;
+  }
+
+  function calculateAge(dobString) {
+    if (!dobString) return null;
+    let birthDate = new Date(dobString);
+    if (isNaN(birthDate.getTime())) return null;
+    let today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    let m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  }
+
+  function compareNumeric(val, op, targetVal) {
+    if (val === null || val === undefined || isNaN(val)) return false;
+    switch(op) {
+      case '<': return val < targetVal;
+      case '>': return val > targetVal;
+      case '<=': return val <= targetVal;
+      case '>=': return val >= targetVal;
+      case '=': return val == targetVal;
+      default: return true;
+    }
+  }
+
+  function applyFilters() {
+    const query = document.getElementById("searchInput").value.trim().toLowerCase();
+    
+    const usiaOp = document.getElementById("filterUsiaOp").value;
+    const usiaVal = parseFloat(document.getElementById("filterUsiaVal").value);
+    
+    const tbOp = document.getElementById("filterTbOp").value;
+    const tbVal = parseFloat(document.getElementById("filterTbVal").value);
+    
+    const posisiVal = document.getElementById("filterPosisi").value.trim().toLowerCase();
+    
+    const pendidikanVal = document.getElementById("filterPendidikan").value.trim().toLowerCase();
+
+    const filtered = rawPelamarData.filter(row => {
+      if (query) {
+        const rowContent = Object.values(row).join(" ").toLowerCase();
+        const keywords = query.split(/\s+/);
+        if (!keywords.every(kw => rowContent.includes(kw))) return false;
+      }
+
+      if (!isNaN(usiaVal)) {
+        const dob = getValueByHeader(row, ["DOB", "TANGGAL LAHIR"]);
+        const age = calculateAge(dob);
+        if (!compareNumeric(age, usiaOp, usiaVal)) return false;
+      }
+
+      if (!isNaN(tbVal)) {
+        const tb = parseFloat(getValueByHeader(row, ["TB", "TINGGI"]));
+        if (!compareNumeric(tb, tbOp, tbVal)) return false;
+      }
+
+      if (posisiVal) {
+        const posisi = String(getValueByHeader(row, ["POSISI"])).trim().toLowerCase();
+        if (posisi !== posisiVal) return false;
+      }
+
+      if (pendidikanVal) {
+        const edu = String(getValueByHeader(row, ["PENDIDIKAN"])).toLowerCase();
+        if (!edu.includes(pendidikanVal)) return false;
+      }
+
+      return true;
+    });
+
+    renderBody(filtered);
+  }
+
+  function resetFilters() {
+    document.getElementById("searchInput").value = "";
+    document.getElementById("filterUsiaVal").value = "";
+    document.getElementById("filterTbVal").value = "";
+    document.getElementById("filterPosisi").value = "";
+    document.getElementById("filterPendidikan").value = "";
+    applyFilters();
+  }
+
+  function openCVModalByDataRow(rowIndex) {
+    activeSelectedRow = rawPelamarData[rowIndex];
+    const data = activeSelectedRow;
+
+    const nama = getValueByHeader(data, ["NAMA KANDIDAT", "NAMA"]);
+    const posisi = getValueByHeader(data, ["POSISI"]);
+    const lokasi = getValueByHeader(data, ["LOKASI"]);
+    const no = getValueByHeader(data, ["NO", "#REF!"]);
+    const timestamp = getValueByHeader(data, ["TIMESTAMP"]);
+    const profil = getValueByHeader(data, ["PROFIL"]);
+    
+    const statusVal = getValueByHeader(data, ["STATUS"]);
+
+    document.getElementById("cvNameView").innerText = String(nama || "NAMA KANDIDAT").toUpperCase();
+    document.getElementById("cvPosisiView").innerText = `${String(posisi || '-').toUpperCase()}`;
+    document.getElementById("cvMetaView").innerText = `${timestamp || '-'} | ${no || '-'}`;
+    
+    // UPDATE SIGN WAKTU KANAN BAWAH CV
+    document.getElementById("cvFooterSign").innerText = `PT Jaya Sakti Mandiri Unggul - HRGA  | ${getFormattedTimestamp()} WIB`;
+
+    // SET VALUE DROPDOWN EDIT STATUS
+    document.getElementById("cvStatusSelect").value = statusVal || "";
+
+    let photoUrl = extractImageUrl(profil);
+    loadBase64ImageIntoElement(photoUrl, document.getElementById("cvPhoto"));
+
+    const form = document.getElementById("cvForm");
+    
+    const fieldsToMap = [
+      "WHATSAPP", "GENDER", "AGAMA", "GOLDAR", "WP", "ORANG TUA",
+      "TB", "BB", "BAJU", "CELANA", "SEPATU", "SIM A", "SIM C", "KONTAK DARURAT",
+      "KTP", "KK", "NPWP",
+      "ALAMAT", "DOMISILI",
+      "PENDIDIKAN", "SEKOLAH/UNIVERSITAS", "JURUSAN", "LULUS", "KUALIFIKASI",
+      "TAHUN", "INSTANSI", "REGISTER KTA", "NO IJAZAH",
+      "PELATIHAN DAN SERTIFIKASI", "PENGALAMAN"
+    ];
+
+    fieldsToMap.forEach(fKey => {
+      const fieldInput = form.querySelector(`[name="${fKey}"]`);
+      if (fieldInput) {
+        let val = getValueByHeader(data, [fKey]);
+        fieldInput.value = String(val || '').toUpperCase();
+      }
+    });
+
+    const emailInput = form.querySelector('[name="EMAIL"]');
+    if (emailInput) emailInput.value = getValueByHeader(data, ["EMAIL"]);
+
+    const sosmedInput = form.querySelector('[name="SOSMED"]');
+    if (sosmedInput) sosmedInput.value = getValueByHeader(data, ["SOSMED"]);
+
+    const bpjsTk = getValueByHeader(data, ["BPJS TK"]);
+    const bpjsKes = getValueByHeader(data, ["BPJS KES"]);
+    const bpjsCombo = form.querySelector('[name="BPJS_COMBO"]');
+    if (bpjsCombo) {
+      bpjsCombo.value = `TK  ${bpjsTk || '-'} / KES  ${bpjsKes || '-'}`.toUpperCase();
+    }
+
+    const pob = getValueByHeader(data, ["POB"]);
+    const dob = getValueByHeader(data, ["DOB"]);
+    form.querySelector('[name="POB_DOB"]').value = `${String(pob || '').toUpperCase()} / ${String(dob || '').toUpperCase()}`;
+
+    let cvRaw = getValueByHeader(data, ["CV"]);
+    form.querySelector('[name="CV_LINKS"]').value = cvRaw;
+    renderCVLinks(cvRaw);
+
+    toggleEditMode(false);
+    
+    setTimeout(() => {
+      document.querySelectorAll('.auto-expand-field').forEach(field => {
+        field.style.height = 'auto';
+        field.style.height = (field.scrollHeight + 2) + 'px';
+      });
+    }, 200);
+
+    const cvModal = new bootstrap.Modal(document.getElementById('cvModal'));
+    cvModal.show();
+  }
+
+  function renderCVLinks(cvRaw) {
+    const container = document.getElementById("cvLinksContainer");
+    let links = parseMultipleUrls(cvRaw);
+    if (links.length === 0) {
+      container.innerHTML = `<span class="text-muted small">Tidak ada berkas CV</span>`;
+      return;
+    }
+
+    container.innerHTML = links.map((link, i) => `
+      <div class="cv-link-row">
+        <a href="${link}" target="_blank" class="btn btn-sm btn-md-orange px-3 py-1 fs-7 fw-bold text-nowrap">
+          📄 ${links.length > 1 ? (i+1) : ''}
+        </a>
+        <a href="${link}" target="_blank" class="cv-url-clickable">${link}</a>
+      </div>
+    `).join("");
+  }
+
+  function toggleEditMode(forceState = null) {
+    if (forceState !== null) {
+      isEditMode = forceState;
+    } else {
+      isEditMode = !isEditMode;
+    }
+
+    const fields = document.querySelectorAll('#cvForm input, #cvForm textarea');
+    fields.forEach(el => {
+      if (isEditMode) {
+        el.removeAttribute('readonly');
+      } else {
+        el.setAttribute('readonly', 'readonly');
+      }
+    });
+    
+    document.getElementById('statusDropdownContainer').classList.toggle('d-none', !isEditMode);
+    document.getElementById('btnSaveCV').classList.toggle('d-none', !isEditMode);
+    document.getElementById('uploadContainer').classList.toggle('d-none', !isEditMode);
+    document.getElementById('cvLinksTextarea').classList.toggle('d-none', !isEditMode);
+    document.getElementById('btnEditCV').innerHTML = isEditMode ? "❌ BATAL" : "✏️ EDIT";
+  }
+
+  async function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    showModernAlert("Proses Upload", "Mengunggah berkas ke Drive...", "⏳");
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      const base64Data = e.target.result.split(',')[1];
+      
+      try {
+        const response = await fetch(GAS_API_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "uploadFile",
+            fileName: file.name,
+            mimeType: file.type,
+            base64Data: base64Data
+          })
+        });
+
+        const resJson = await response.json();
+        if (resJson.success) {
+          const textarea = document.getElementById('cvLinksTextarea');
+          const currentText = textarea.value.trim();
+          textarea.value = currentText ? `${currentText}\n${resJson.fileUrl}` : resJson.fileUrl;
+          
+          renderCVLinks(textarea.value);
+
+          showModernAlert("Berhasil Upload", "File berhasil diunggah ke Drive!", "✅");
+        } else {
+          showModernAlert("Gagal Upload", resJson.error || "Gagal mengunggah file.", "❌");
+        }
+      } catch (err) {
+        showModernAlert("Kesalahan", "Gagal menghubungkan ke Apps Script.", "⚠️");
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function saveDataChange() {
+    if (!activeSelectedRow) return;
+
+    const form = document.getElementById("cvForm");
+    const updatedFields = {};
+
+    const fieldsToMap = [
+      "WHATSAPP", "EMAIL", "GENDER", "AGAMA", "GOLDAR", "WP", "ORANG TUA",
+      "TB", "BB", "BAJU", "CELANA", "SEPATU", "SIM A", "SIM C", "KONTAK DARURAT",
+      "KTP", "KK", "NPWP",
+      "ALAMAT", "DOMISILI",
+      "PENDIDIKAN", "SEKOLAH/UNIVERSITAS", "JURUSAN", "LULUS", "KUALIFIKASI",
+      "TAHUN", "INSTANSI", "REGISTER KTA", "NO IJAZAH",
+      "PELATIHAN DAN SERTIFIKASI", "PENGALAMAN", "SOSMED"
+    ];
+
+    fieldsToMap.forEach(fKey => {
+      const fieldInput = form.querySelector(`[name="${fKey}"]`);
+      if (fieldInput) {
+        updatedFields[fKey] = fieldInput.value;
+      }
+    });
+
+    updatedFields["CV"] = form.querySelector('[name="CV_LINKS"]').value;
+    
+    const selectedStatus = document.getElementById("cvStatusSelect").value;
+    updatedFields["STATUS"] = selectedStatus;
+
+    try {
+      const btnSave = document.getElementById('btnSaveCV');
+      btnSave.disabled = true;
+
+      const response = await fetch(GAS_API_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          NO: getValueByHeader(activeSelectedRow, ["NO", "#REF!"]),
+          TIMESTAMP: getValueByHeader(activeSelectedRow, ["TIMESTAMP"]),
+          updatedData: updatedFields
+        })
+      });
+
+      const resJson = await response.json();
+      if (resJson.success) {
+        activeSelectedRow["STATUS"] = selectedStatus;
+
+        showModernAlert("Berhasil", "Data berhasil disimpan ke Google Sheet!", "✅");
+        toggleEditMode(false);
+        fetchData();
+      } else {
+        showModernAlert("Gagal", resJson.message || resJson.error, "❌");
+      }
+    } catch (err) {
+      showModernAlert("Kesalahan", "Gagal menyimpan perubahan ke sheet.", "⚠️");
+    } finally {
+      document.getElementById('btnSaveCV').disabled = false;
+    }
+  }
+
+  function downloadCV_PDF() {
+    // CATATAN: sebelumnya fungsi ini pakai html2pdf.js (html2canvas + jsPDF).
+    // Library itu butuh membuat iframe untuk meng-clone halaman, dan ketika
+    // file ini dibuka langsung dari file:// (tanpa web server), Chrome/Edge
+    // memblokirnya dengan error "Unsafe attempt to load URL file:/// ...
+    // 'file:' URLs are treated as unique security origins". Ini keterbatasan
+    // browser yang tidak bisa diakali dari sisi kode html2pdf, jadi diganti
+    // total dengan fitur Print bawaan browser (window.print()), yang tidak
+    // butuh iframe cloning sama sekali dan jalan normal walau dibuka dari
+    // file:// lokal. User tinggal pilih "Save as PDF" di dialog print.
+
+    // 1. Pastikan tidak sedang dalam mode edit (field harus tampil rapi tanpa border input)
+    if (isEditMode) {
+      toggleEditMode(false);
+    }
+
+    // 2. Refresh sign waktu sebelum dicetak
+    document.getElementById("cvFooterSign").innerText = `HRGA/JSMU [ ${getFormattedTimestamp()} ]`;
+
+    // 3. Pastikan auto-expand textarea sudah menyesuaikan tinggi kontennya
+    document.querySelectorAll('.auto-expand-field').forEach(field => {
+      field.style.height = 'auto';
+      field.style.height = (field.scrollHeight + 2) + 'px';
+    });
+
+    // 4. CLONE .cv-a4-page KELUAR MODAL, LANGSUNG KE <body>.
+    // Kenapa: elemen aslinya ada DI DALAM modal Bootstrap yang punya
+    // position:fixed + overflow:hidden. Walau CSS print bilang "tampilkan",
+    // browser tetap meng-clip konten ke area modal yang terlihat di layar,
+    // jadi hasil print sebelumnya kosong/terpotong. Dengan clone ke body
+    // langsung (di luar konteks modal), tidak ada lagi yang meng-clip.
+    const original = document.querySelector('.cv-a4-page');
+    const clone = original.cloneNode(true);
+
+    // cloneNode TIDAK menyalin nilai input/textarea yang diisi lewat JS
+    // (.value), hanya atribut HTML asli. Jadi nilainya harus disalin manual.
+    const originalFields = original.querySelectorAll('input, textarea, select');
+    const cloneFields = clone.querySelectorAll('input, textarea, select');
+    originalFields.forEach((el, i) => {
+      const cEl = cloneFields[i];
+      if (!cEl) return;
+      cEl.value = el.value;
+      if (cEl.tagName === 'TEXTAREA') cEl.textContent = el.value;
+    });
+
+    // Hilangkan textarea daftar link CV mentah dari hasil cetak
+    const cloneLinksTextarea = clone.querySelector('#cvLinksTextarea');
+    if (cloneLinksTextarea) cloneLinksTextarea.style.display = 'none';
+
+    const printWrap = document.createElement('div');
+    printWrap.id = 'printCloneWrap';
+    printWrap.appendChild(clone);
+    document.body.appendChild(printWrap);
+
+    const cleanup = () => {
+      printWrap.remove();
+      window.removeEventListener('afterprint', cleanup);
+    };
+    window.addEventListener('afterprint', cleanup);
+
+    // 5. Panggil dialog print bawaan browser; user pilih "Save as PDF"
+    setTimeout(() => window.print(), 100);
+  }
+
+  document.getElementById("searchInput").addEventListener("input", applyFilters);
+  document.getElementById("filterUsiaOp").addEventListener("change", applyFilters);
+  document.getElementById("filterUsiaVal").addEventListener("input", applyFilters);
+  document.getElementById("filterTbOp").addEventListener("change", applyFilters);
+  document.getElementById("filterTbVal").addEventListener("input", applyFilters);
+  document.getElementById("filterPosisi").addEventListener("change", applyFilters);
+  document.getElementById("filterPendidikan").addEventListener("change", applyFilters);
+
+  fetchData();
+</script>
+</body>
+</html>
